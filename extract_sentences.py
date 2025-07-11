@@ -1,15 +1,16 @@
-import pandas
 import re
+import pandas
 
-def clean_documents(filenames):
+def clean_documents(folder):
     """
     Cleans .xlsx files for use with LLMs
 
     Arguments:
-    <filenames>: path to a folder of .xlsx files
+    <folder>: path to a folder of .xlsx files
 
     Returns a dict of pandas dfs with one column, 'Sentences', with indices
-    matching line numbers in the .xlsx file
+    matching line numbers in the .xlsx file. Dictionary keys are Doc{i} where
+    i is the order 0, 1, 2, ... they were ordered in the file.
     """
     cleaned_docs = {}
     doc_idx = 0
