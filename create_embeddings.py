@@ -62,7 +62,7 @@ def embed_files(folder_path, embed_model="jinaai/jina-embeddings-v2-small-en"):
     """
     Embeds text within a .xlsx file.
 
-    Attributes:
+    Arguments:
     <folder_path>: Path to a folder containing only .xlsx files in the proper format.
     <embed_model>: The model to be used to embed the text. Default is Jina v2.
 
