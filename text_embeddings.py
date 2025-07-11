@@ -15,8 +15,10 @@ import matplotlib.patches as mpatches
 from matplotlib.ticker import PercentFormatter
 import matplotlib.colors as mcolors
 
-dict_embeddings = ct.embed_files("C:/Users/carlo/OneDrive/Documents/coded_memos")
-df_embeddings = dt.combine_embedded(dict_embeddings)
+# dict_embeddings = ct.embed_files("C:/Users/carlo/OneDrive/Documents/coded_memos")
+# df_embeddings = dt.combine_embedded(dict_embeddings)
 
 dict_codes = dt.format_coded("C:/Users/carlo/OneDrive/Documents/coded_memos")
 df_codes = dt.combine_coded(dict_codes)
+
+print(dt.weight_coded(df_codes))
