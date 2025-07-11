@@ -28,9 +28,9 @@ def clean_documents(folder_path):
         # Find base name
         name = os.path.basename(path)
         name = os.path.splitext(name)[0]
-        # Remove number column and newline characters
         df = pandas.read_excel(path)
-        df.drop(columns='Unnamed: 0', inplace=True)
+        # Rename Line Number column & remove newlines
+        df.rename(columns={'Unnamed: 0': 'Lines'}, inplace=True)
         for sentence in df['Sentences']:
             if '\n' in sentence:
                 cleaned_sentence = re.sub(r'\n+', ' ', sentence)
