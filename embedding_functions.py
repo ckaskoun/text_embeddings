@@ -63,13 +63,11 @@ def embedding_score(embedding_matrix, alpha, centroid_indices, metric, scaling, 
 
     return score
 
-
-# new functions for calculating the KL divergence and JS divergence
+# functions for calculating the KL divergence and JS divergence
 def kl_divergence(p, q):
     p = np.where(p == 0, 1e-10, p)
     q = np.where(q == 0, 1e-10, q)
     return np.sum(p * np.log2(p / q), axis = 1)
-
 
 def js_divergence(p, q):
     m = 0.5*(p+q)

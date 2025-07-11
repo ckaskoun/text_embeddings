@@ -204,7 +204,6 @@ def weight_coded(df_coded, level='category'):
                 df_weights.at[row_idx, c] = 0.0
         row_idx += 1
 
-    df_duplicate.drop('Codes', axis=1, inplace=True)
     df_weighted = pd.concat([df_duplicate, df_weights], axis=1)
 
     return df_weighted
