@@ -120,10 +120,11 @@ def higher_level(df_coded):
                 "Codes".
 
     Returns:
-    Changes df_coded to contain a higher level of codes.
+    <df_copy>: A copy of df_coded containing a higher level of codes.
     """
     cell_idx = 0
-    for cell in df_coded['Codes']:
+    df_copy = df_coded.copy()
+    for cell in df_copy['Codes']:
         higher_codes = []
         for i in range(len(cell)):
             for category in codebook:
@@ -135,9 +136,9 @@ def higher_level(df_coded):
                         if cell[i] in codebook[category][code]:
                             if code not in higher_codes:
                                 higher_codes.append(code)
-        df_coded.at[cell_idx, 'Codes'] = higher_codes
+        df_copy.at[cell_idx, 'Codes'] = higher_codes
         cell_idx += 1
-    return df_coded
+    return df_copy
 
 
 def sum_codes(df_coded):
@@ -160,3 +161,50 @@ def sum_codes(df_coded):
             else:
                 code_occurence[code] = 1
     return code_occurence
+
+
+def weight_coded(df_coded, level='category'):
+    """
+    Replaces the human-assigned codes with weights for model training purposes.
+
+    Arguments:
+    <df_coded>: A combined df of coded memos, with one column for all occurences
+                of codes. At default level (not raised to a higher level)
+    <level>: The level at which the data should be weighted. Options are:
+             'local_global', 'topic', and 'category'. Default is category.
+
+    Returns:
+    <df_weighted>: A new df which contians weighted values for each category
+                   in place of human assigned codes.
+    """
+    df_duplicate = df_coded.copy()
+    if level == 'local_global':
+        categories = []
+        for k1 in codebook:
+            for k2 in codebook[k1]:
+                for code in codebook[k1][k2]:
+                    categories.append(code)
+    elif level == 'topic':
+        df_duplicate = higher_level(df_duplicate)
+        categories = []
+        for k in codebook:
+            categories += list(codebook[k].keys())
+    elif level == 'category':
+        df_duplicate = higher_level(higher_level(df_duplicate))
+        categories = list(codebook.keys())
+
+    df_weights = pd.DataFrame(columns=categories)
+    row_idx = 0
+    for cell in df_duplicate['Codes']:
+        total_codes = len(cell)
+        for c in categories:
+            if c in cell:
+                df_weights.at[row_idx, c] = 1 / total_codes
+            else:
+                df_weights.at[row_idx, c] = 0.0
+        row_idx += 1
+
+    df_duplicate.drop('Codes', axis=1, inplace=True)
+    df_weighted = pd.concat([df_duplicate, df_weights], axis=1)
+
+    return df_weighted
