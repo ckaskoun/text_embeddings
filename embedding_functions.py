@@ -1,17 +1,18 @@
-# Basic imports
+"""
+Functions used in the analysis code <text_embeddings.py>.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
-import pickle
 import pandas as pd
 import scipy as sc
 import math
-
-# Special imports for plots
 import string
 import seaborn as sns
 import matplotlib.patches as mpatches
 from matplotlib.ticker import PercentFormatter
 import matplotlib.colors as mcolors
+import matplotlib.patches as mpatches
 
 def embedding_score(embedding_matrix, alpha, centroid_indices, metric, scaling, rounding=False):
     """Calculates the scores for a given embedding matrix (n, d)
@@ -72,3 +73,68 @@ def kl_divergence(p, q):
 def js_divergence(p, q):
     m = 0.5*(p+q)
     return 0.5*(kl_divergence(p, m) + kl_divergence(q, m))
+
+# Function for creating a heatmap of the embedding scores, Its heavily modified
+# to plot our exact data.
+def plot_heatmap(fig, axs, scores_list, title_list, legend_patches, cmap):
+    """This function is for plotting heatmaps for 5 articles and their corresponding
+    scores. One can either pass in just embedding scores, or both LDA and embedding scores.
+    The function will then plot the heatmaps for the scores, and also calculate the JS divergence
+    between the two scores if both are passed in.
+
+    Args:
+        fig (matplotlib fig): The figure to plot the heatmaps on
+        axs (matplotlib axs): The axs to plot the heatmaps on, len 5
+        scores_list (list): A list of the scores to plot
+        title_list (list): Title for each of the subplots
+        legend_patches (matplotlib legend): Legend to plot
+        cmap (matplotlib cmap): colors for heatmap
+
+    Returns:
+        _type_: _description_
+    """
+    assert len(scores_list) == len(title_list) == len(axs)
+
+    # For naming the subplots
+    alphabet = list(string.ascii_lowercase)
+
+    # Creating text on left side of the heatmap
+    y_tl = False
+    if len(scores_list[0]) == 2:
+        y_tl = ["Coded",'EMB']
+
+    for scores, title, ax, letter in zip(scores_list, title_list, axs, alphabet):
+        # Plot the heatmap
+        gx = sns.heatmap(scores, cmap=cmap, annot=True, yticklabels=y_tl,
+                         xticklabels=range(1,len(scores[0])+1), vmin=0, vmax=1,
+                         ax=ax, cbar=False, fmt='.2f')
+
+        # Formatting the ticks
+        gx.set_yticklabels(gx.get_yticklabels(), fontsize=9)
+
+        # Add the JS divergence to the right of each heatmap if both coded and embedding scores are passed in
+        if len(scores) == 2:
+            JS_div = js_divergence(scores[0].reshape(1, -1), scores[1].reshape(1, -1))
+            ax.text(10.1, 1.5, f'JS: {JS_div[0]:.2f}',
+                    fontsize=9, rotation=-90, fontweight='bold')
+
+        ax.set_title(title, fontweight='bold', fontsize=10)
+        ax.text(-0.3, -0.2, f"({letter})", fontsize=11, fontweight='bold')
+
+    # Create a colorbar
+    # cbar_ax = fig.add_axes([1.1, 0.05, 0.075, 0.64])
+    # cbar = fig.colorbar(gx.collections[0], cax=cbar_ax)
+    # cbar.outline.set_visible(False)
+    # cbar.ax.tick_params(labelsize=8)
+    # cbar.set_label('', rotation=270, fontsize=8, labelpad=10)
+
+    # Create fig legend
+    fig.subplots_adjust(hspace=.7,bottom=0.1)
+    fig.legend(handles=legend_patches,
+               loc='upper left',
+               bbox_to_anchor=(0.05, 0.075),
+               frameon=False,
+               prop={'size':10,'weight':'bold'},
+               ncol=1)
+
+    return fig, axs
