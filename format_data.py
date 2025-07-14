@@ -1,3 +1,8 @@
+"""
+Helper functions for aligning data with format used in the G.E.V.I.R repository.
+Also helpful for better visualization and understanding of the data.
+"""
+
 import pandas as pd
 from create_embeddings import clean_documents
 
