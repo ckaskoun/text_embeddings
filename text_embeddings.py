@@ -383,3 +383,24 @@ fig, axs = plt.subplots(5,1, figsize=(12, 14))
 fig, axs = plot_heatmap(fig, axs, scores_list, title_list, legend_patches, cmap)
 plt.savefig('HeatmapMaximum.png')
 plt.show()
+
+# Create new inputs for the plot_heatmap function for a median sample
+scores_list = []
+title_list = []
+
+# List of indices of the articles that are closest to the median
+heatmap_indices = np.abs(JS_divergence_array - np.median(JS_divergence_array)).argsort()[:5]
+
+# Filling in the scores_list and title_list, for the plot_heatmap function
+for i, index in enumerate(heatmap_indices):
+    scores_list.append([coded_scores[index, :], embedding_scores_3[index, :]])
+    title = f'{df_codes_weighted["File"][index]} ({df_codes_weighted["Lines"][index]}) \n {df_codes_weighted["Sentences"][index][:120]}'
+    if len(df_codes_weighted["Sentences"][index]) > 120:
+        title = title + '...'
+    title_list.append(title)
+
+# Using the heatmap function to plot the heatmap
+fig, axs = plt.subplots(5,1, figsize=(12, 14))
+fig, axs = plot_heatmap(fig, axs, scores_list, title_list, legend_patches, cmap)
+plt.savefig('HeatmapMedian.png')
+plt.show()
