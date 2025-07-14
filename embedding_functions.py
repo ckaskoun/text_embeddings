@@ -115,7 +115,7 @@ def plot_heatmap(fig, axs, scores_list, title_list, legend_patches, cmap):
         # Add the JS divergence to the right of each heatmap if both coded and embedding scores are passed in
         if len(scores) == 2:
             JS_div = js_divergence(scores[0].reshape(1, -1), scores[1].reshape(1, -1))
-            ax.text(10.1, 1.5, f'JS: {JS_div[0]:.2f}',
+            ax.text(3.1, 1.5, f'JS: {JS_div[0]:.2f}',
                     fontsize=9, rotation=-90, fontweight='bold')
 
         ax.set_title(title, fontweight='bold', fontsize=10)
