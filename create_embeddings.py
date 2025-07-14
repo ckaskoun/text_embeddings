@@ -1,3 +1,9 @@
+"""
+Separate code which creates the embeddings from the sentences. Defaults to
+Jina v2 but can be changed to other models. Time to embed is proportional to
+amount of text.
+"""
+
 import os
 import re
 import pandas
