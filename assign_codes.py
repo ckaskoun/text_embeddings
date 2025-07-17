@@ -161,7 +161,7 @@ plt.savefig('ScalingComparison.png')
 plt.show()
 
 # Embed the files to assign codes to
-dict_assign = ct.embed_files("C:/Users/carlo/OneDrive/Documents/round6") # Path to coded files goes here
+dict_assign = ct.embed_files("") # Path to coded files goes here
 df_assign = dt.combine_embedded(dict_assign)
 
 # Store in matrix
