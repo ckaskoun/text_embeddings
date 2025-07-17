@@ -1,66 +1,77 @@
 """
-Functions used in the analysis code <text_embeddings.py>.
+Functions used in the analysis code.
 """
 
+# Imports
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import scipy as sc
-import math
 import string
 import seaborn as sns
 import matplotlib.patches as mpatches
-from matplotlib.ticker import PercentFormatter
-import matplotlib.colors as mcolors
-import matplotlib.patches as mpatches
+from sklearn.cluster import KMeans
+import warnings
 
-def embedding_score(embedding_matrix, alpha, centroid_indices, metric, scaling, rounding=False):
-    """Calculates the scores for a given embedding matrix (n, d)
-        and a list of indices for each centroid (k), listed together in
-        centroid_indices.
+# ignore only the “memory leak” UserWarning from sklearn’s _kmeans module
+warnings.filterwarnings(
+    "ignore",
+    message=r".*KMeans is known to have a memory leak on Windows with MKL.*",
+    category=UserWarning
+)
 
-    Args:
-        embedding_matrix np.array: The embedding matrix, shape (n, d)
-        alpha (float): The scaling parameter
-        centroid_indices (list): A list of lists of indices of the centroids
-        metric (str): The metric used for calculating the distance
-        scaling (str): The scaling used for scaling the distances
-        rounding (bool, optional): If True scores are rounded. Defaults to False.
-
-    Returns:
-        np.array: The embedding scores, shape (n, k)
+# Main function for calcuating embeddings scores from already coded data (manual or random).
+# Scales down number of representative sentences to keep processing time faster.
+def embedding_score(embedding_matrix, alpha, centroid_indices, metric, scaling, rounding=False, assignment_matrix=None):
     """
-
-    # Check that the input is valid
+    Calculates the scores for a given embedding matrix (n, d)
+    using at most 15 reps per category (KMeans if >15), then per-rep distance->scale->mean.
+    """
+    # Validate inputs
     assert scaling in ["exponential", "power"]
     assert metric in ["cosine", "euclidean", "cityblock"]
 
-    # Normalizing the embedding matrix
-    embedding_matrix /= np.linalg.norm(embedding_matrix, axis=1)[:,None]
+    # Normalize base embeddings
+    embedding_matrix /= np.linalg.norm(embedding_matrix, axis=1)[:, None]
 
-    # Calculating centroid vectors
-    centroid = np.zeros((len(centroid_indices), len(embedding_matrix[0])))
-    for i in range(len(centroid_indices)):
-        embeddings_temp = np.array([embedding_matrix[index] for index in centroid_indices[i]])
-        centroid[i] = np.mean(embeddings_temp, axis=0)
+    # Choose matrix to score and normalize if assignment_matrix provided
+    if assignment_matrix is None:
+        score_matrix = embedding_matrix
+    else:
+        score_matrix = assignment_matrix / np.linalg.norm(assignment_matrix, axis=1)[:, None]
 
-    # Calculating distances using scipy.spatial.distance.cdist function
-    distances = sc.spatial.distance.cdist(embedding_matrix, centroid, metric=metric)
+    # Prepare output
+    n_samples = score_matrix.shape[0]
+    n_cats = len(centroid_indices)
+    score = np.zeros((n_samples, n_cats))
 
-    # Scale and invert the distances according to the specified scaling
-    if scaling == "exponential":
-        score = 1/np.exp(alpha*distances)
-    if scaling == "power":
-        score = 1/(distances**alpha)
+    # Limit reps to max_reps per category
+    max_reps = 15
+    for i, idxs in enumerate(centroid_indices):
+        reps = embedding_matrix[idxs]
+        # If too many reps, cluster down to max_reps
+        if reps.shape[0] > max_reps:
+            kmeans = KMeans(n_clusters=max_reps, random_state=0)
+            reps = kmeans.fit(reps).cluster_centers_
+            reps /= np.linalg.norm(reps, axis=1)[:, None]
 
-    # L1 norm the scores to get a probability distribution
-    score /= score.sum(axis=1)[:,None]
+        # Compute distances and weights
+        distances = sc.spatial.distance.cdist(score_matrix, reps, metric=metric)
+        if scaling == "exponential":
+            weights = np.exp(-alpha * distances)
+        else:
+            distances = np.maximum(distances, 1e-8)
+            weights = distances ** -alpha
 
-    # Round the scores to 2 decimals if specified
+        # Average weights across reps
+        score[:, i] = weights.mean(axis=1)
+
+    # Normalize across categories
+    score /= score.sum(axis=1)[:, None]
+
+    # Optional threshold & renormalize
     if rounding:
-        # Set all values below 0.01 to 0
-        score[score <=0.01] = 0
-        score /= score.sum(axis=1)[:,None]
+        score[score <= 0.01] = 0
+        score /= score.sum(axis=1)[:, None]
 
     return score
 
