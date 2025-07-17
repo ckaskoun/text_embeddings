@@ -1,13 +1,13 @@
 """
-Separate code which creates the embeddings from the sentences. Defaults to
-Jina v2 but can be changed to other models. Time to embed is proportional to
-amount of text.
+Create embeddings from sentences. Coded currently for Jina v4 and may need
+adjustment for any other models.
 """
 
+# Imports
 import os
 import re
 import pandas
-from transformers import AutoModel
+from sentence_transformers import SentenceTransformer
 
 def clean_documents(folder_path):
     """
@@ -38,10 +38,16 @@ def clean_documents(folder_path):
         # Rename Line Number column & remove newlines
         df.rename(columns={'Unnamed: 0': 'Lines'}, inplace=True)
         for sentence in df['Sentences']:
-            if '\n' in sentence:
-                cleaned_sentence = re.sub(r'\n+', ' ', sentence)
-                cleaned_sentence = cleaned_sentence.strip('\n')
-                df['Sentences'] = df['Sentences'].replace([sentence], cleaned_sentence)
+            try:
+                if '\n' in sentence:
+                    cleaned_sentence = re.sub(r'\n+', ' ', sentence)
+                    cleaned_sentence = cleaned_sentence.strip('\n')
+                    df['Sentences'] = df['Sentences'].replace([sentence], cleaned_sentence)
+            except:
+                if '\n' in str(sentence):
+                    cleaned_sentence = re.sub(r'\n+', ' ', str(sentence))
+                    cleaned_sentence = cleaned_sentence.strip('\n')
+                    df['Sentences'] = df['Sentences'].replace([sentence], cleaned_sentence)
         cleaned_docs[name] = df
 
     return cleaned_docs
@@ -61,10 +67,13 @@ def encode_text(row):
     A list of the coordinates of the embeddings.
     """
     text = row[column]
-    embedding = model.encode(text)
+    if isinstance(text, str):
+        embedding = model.encode(text)
+    else:
+        embedding = model.encode(str(text))
     return embedding.tolist()
 
-def embed_files(folder_path, embed_model="jinaai/jina-embeddings-v2-small-en"):
+def embed_files(folder_path, embed_model="jinaai/jina-embeddings-v4"):
     """
     Embeds text within a .xlsx file.
 
@@ -77,10 +86,18 @@ def embed_files(folder_path, embed_model="jinaai/jina-embeddings-v2-small-en"):
                dataframes for each file contining a 'Sentence' column with text
                and an 'Embeddings' column containing the embeddings.
     """
-    # Define variables needed for encode_text function
-    global model, column
-    model = AutoModel.from_pretrained(embed_model, trust_remote_code=True)
+    # Define variables needed for encode_text function, specific for Jina v4 and may
+    # need adjustment otherwise
+    global model, column, embed
+    try:
+        if embed_model != embed:
+            model = SentenceTransformer(embed_model, trust_remote_code=True, model_kwargs={"default_task": "text-matching"})
+            embed=embed_model
+    except:
+        model = SentenceTransformer(embed_model, trust_remote_code=True, model_kwargs={"default_task": "text-matching"})
+        embed=embed_model
     column = 'Sentences'
+    embed=embed_model
 
     # Clean .xlsx files
     df_dict = clean_documents(folder_path)
