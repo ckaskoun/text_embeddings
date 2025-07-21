@@ -9,23 +9,17 @@ import scipy as sc
 import string
 import seaborn as sns
 import matplotlib.patches as mpatches
-from sklearn.cluster import KMeans
-import warnings
-
-# ignore only the “memory leak” UserWarning from sklearn’s _kmeans module
-warnings.filterwarnings(
-    "ignore",
-    message=r".*KMeans is known to have a memory leak on Windows with MKL.*",
-    category=UserWarning
-)
+from sklearn.cluster import Birch
 
 # Main function for calcuating embeddings scores from already coded data (manual or random).
 # Scales down number of representative sentences to keep processing time faster.
 def embedding_score(embedding_matrix, alpha, centroid_indices, metric, scaling, rounding=False, assignment_matrix=None):
     """
-    Calculates the scores for a given embedding matrix (n, d)
-    using at most 15 reps per category (KMeans if >15), then per-rep distance->scale->mean.
+    Calculates the scores for a given embedding matrix (n, d),
+    subclustering using Birch, then per-rep distance->scale->mean.
     """
+    # max_reps = 15
+
     # Validate inputs
     assert scaling in ["exponential", "power"]
     assert metric in ["cosine", "euclidean", "cityblock"]
@@ -44,15 +38,13 @@ def embedding_score(embedding_matrix, alpha, centroid_indices, metric, scaling, 
     n_cats = len(centroid_indices)
     score = np.zeros((n_samples, n_cats))
 
-    # Limit reps to max_reps per category
-    max_reps = 15
+    # Subcluster using Birch
     for i, idxs in enumerate(centroid_indices):
         reps = embedding_matrix[idxs]
-        # If too many reps, cluster down to max_reps
-        if reps.shape[0] > max_reps:
-            kmeans = KMeans(n_clusters=max_reps, random_state=0)
-            reps = kmeans.fit(reps).cluster_centers_
-            reps /= np.linalg.norm(reps, axis=1)[:, None]
+        birch = Birch(n_clusters=None)
+        birch.fit(reps)
+        reps = birch.subcluster_centers_
+        reps /= np.linalg.norm(reps, axis=1)[:, None]
 
         # Compute distances and weights
         distances = sc.spatial.distance.cdist(score_matrix, reps, metric=metric)
@@ -126,7 +118,7 @@ def plot_heatmap(fig, axs, scores_list, title_list, legend_patches, cmap):
         # Add the JS divergence to the right of each heatmap if both coded and embedding scores are passed in
         if len(scores) == 2:
             JS_div = js_divergence(scores[0].reshape(1, -1), scores[1].reshape(1, -1))
-            ax.text(3.1, 1.5, f'JS: {JS_div[0]:.2f}',
+            ax.text(8.1, 1.5, f'JS: {JS_div[0]:.2f}',
                     fontsize=9, rotation=-90, fontweight='bold')
 
         ax.set_title(title, fontweight='bold', fontsize=10)
@@ -146,6 +138,6 @@ def plot_heatmap(fig, axs, scores_list, title_list, legend_patches, cmap):
                bbox_to_anchor=(0.05, 0.075),
                frameon=False,
                prop={'size':10,'weight':'bold'},
-               ncol=1)
+               ncol=3)
 
     return fig, axs
