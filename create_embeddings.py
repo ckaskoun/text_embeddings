@@ -52,7 +52,7 @@ def clean_documents(folder_path):
 
     return cleaned_docs
 
-def encode_text(row):
+def encode_text(row, truncation=None):
     """
     Reads the text within a pandas df in a specific column and per row,
     creates an embedding using the assigned model.
@@ -68,12 +68,12 @@ def encode_text(row):
     """
     text = row[column]
     if isinstance(text, str):
-        embedding = model.encode(text)
+        embedding = model.encode(text, truncate_dim=truncation)
     else:
-        embedding = model.encode(str(text))
+        embedding = model.encode(str(text), truncate_dim=truncation)
     return embedding.tolist()
 
-def embed_files(folder_path, embed_model="jinaai/jina-embeddings-v4"):
+def embed_files(folder_path, embed_model="jinaai/jina-embeddings-v4", red_dim=None):
     """
     Embeds text within a .xlsx file.
 
@@ -105,7 +105,7 @@ def embed_files(folder_path, embed_model="jinaai/jina-embeddings-v4"):
     # Apply encode_text function to sentences for each file, update df
     for k in df_dict:
         df = df_dict[k]
-        df['Embeddings'] = df.apply(encode_text, axis=1)
+        df['Embeddings'] = df.apply(encode_text, axis=1, truncation=red_dim)
         df_dict[k] = df
 
     return df_dict
