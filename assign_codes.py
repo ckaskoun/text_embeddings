@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from embedding_functions import js_divergence, embedding_score
+import pickle as pckl
 
 # Create a dataframe of hand-coded sentences for calculation of alpha
 dict_codes = dt.format_coded("") # Path to coded files goes here
@@ -17,7 +18,16 @@ df_codes = dt.combine_coded(dict_codes)
 df_codes_weighted = dt.weight_coded(df_codes, 'category') # 'category' for highest level of coding
 
 # Embed cand-coded sentences for centroid calculation
+
+# If embeddings already saved in pickle
+# with open("coded_embeddings.pkl", "rb") as f:
+#     dict_code_embed = pkl.load(f)
+
+# If need new embeddings
 dict_code_embed = ct.embed_files("") # Path to coded files goes here
+with open("coded_embeddings.pkl", "wb") as f:
+    pkl.dump(dict_code_embed, f)
+
 df_code_embed = dt.combine_embedded(dict_code_embed)
 
 # Create a matrix with the embeddings
@@ -161,7 +171,16 @@ centroid_indices = [centroid_idxs[category] for category in coded_category_names
 # plt.show()
 
 # Embed the files to assign codes to
+
+# If embeddings already saved in pickle
+# with open("new_embeddings.pkl", "rb") as f:
+#     dict_assign = pkl.load(f)
+
+# If need new embeddings
 dict_assign = ct.embed_files("") # Path to uncoded files goes here
+with open("new_embeddings.pkl", "wb") as f:
+    pkl.dump(dict_code_embed, f)
+
 df_assign = dt.combine_embedded(dict_assign)
 
 # Store in matrix
