@@ -19,6 +19,9 @@ import matplotlib.patches as mpatches
 from matplotlib.ticker import PercentFormatter
 import matplotlib.colors as mcolors
 from scipy.stats import kendalltau, pearsonr, spearmanr
+import pickle as pkl
+
+# NEED TO ADD RETRIEVING SAVED EMBEDDINGS FROM PICKLE
 
 # Create a dataframe of embeddings for comparison to human-coded scores
 
