@@ -21,18 +21,16 @@ import matplotlib.colors as mcolors
 from scipy.stats import kendalltau, pearsonr, spearmanr
 import pickle as pkl
 
-# NEED TO ADD RETRIEVING SAVED EMBEDDINGS FROM PICKLE
-
 # Create a dataframe of embeddings for comparison to human-coded scores
 
 # If embeddings already saved in pickle
 # with open("coded_embeddings.pkl", "rb") as f:
-#     dict_code_embed = pkl.load(f)
+#     dict_embeddings = pkl.load(f)
 
 # If need new embeddings
 dict_embeddings = ct.embed_files("") # Path to coded files goes here
 with open("coded_embeddings.pkl", "wb") as f:
-    pkl.dump(dict_code_embed, f)
+    pkl.dump(dict_embeddings, f)
 
 df_embeddings = dt.combine_embedded(dict_embeddings)
 
