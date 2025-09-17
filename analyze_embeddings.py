@@ -24,13 +24,13 @@ import pickle as pkl
 # Create a dataframe of embeddings for comparison to human-coded scores
 
 # If embeddings already saved in pickle
-# with open("coded_embeddings.pkl", "rb") as f:
-#     dict_embeddings = pkl.load(f)
+with open("coded_embeddings256.pkl", "rb") as f:
+    dict_embeddings = pkl.load(f)
 
 # If need new embeddings
-dict_embeddings = ct.embed_files("") # Path to coded files goes here
-with open("coded_embeddings.pkl", "wb") as f:
-    pkl.dump(dict_embeddings, f)
+# dict_embeddings = ct.embed_files("") # Path to coded files goes here
+# with open("coded_embeddings.pkl", "wb") as f:
+#     pkl.dump(dict_embeddings, f)
 
 df_embeddings = dt.combine_embedded(dict_embeddings)
 
