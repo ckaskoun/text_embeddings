@@ -23,20 +23,20 @@ import pickle as pkl
 
 # Create a dataframe of embeddings for comparison to human-coded scores
 
-# If embeddings already saved in pickle
+# # If embeddings already saved in pickle
 # with open("coded_embeddings.pkl", "rb") as f:
 #     df_embeddings2048 = pkl.load(f)
-
-# Continue with all other dimensions
+#
+# # Continue with all other dimensions
 # with open("coded_embeddings1024.pkl", "rb") as f:
 #     df_embeddings1024 = pkl.load(f)
-
+#
 # with open("coded_embeddings512.pkl", "rb") as f:
 #     df_embeddings512 = pkl.load(f)
-
+#
 # with open("coded_embeddings256.pkl", "rb") as f:
 #     df_embeddings256 = pkl.load(f)
-
+#
 # with open("coded_embeddings128.pkl", "rb") as f:
 #     df_embeddings128 = pkl.load(f)
 
