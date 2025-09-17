@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from embedding_functions import js_divergence, embedding_score
-import pickle as pckl
+import pickle as pkl
 
 # Create a dataframe of hand-coded sentences for calculation of alpha
 dict_codes = dt.format_coded("") # Path to coded files goes here
