@@ -140,7 +140,7 @@ for i, E in enumerate(embedding_matrices):
 
 fig = plt.figure(dpi=500)
 # Create a plot with the number of articles on the x-axis and the JS divergence on the y-axis
-plt.scatter(x, y, c=c, cmap="viridis")
+plt.scatter(x, y, c=c, cmap="inferno")
 plt.plot(x, y, label="JS divergence")
 plt.colorbar(label="alpha")
 plt.xlabel("Embedding dimension")
