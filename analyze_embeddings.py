@@ -35,7 +35,7 @@ with open("coded_embeddings.pkl", "rb") as f:
 df_embeddings = dt.combine_embedded(dict_embeddings)
 
 # Create a dataframe of the human-coded scores
-dict_codes = dt.format_coded("C:/Users/carlo/OneDrive/Documents/coded_memos") # Path to coded files goes here
+dict_codes = dt.format_coded("") # Path to coded files goes here
 df_codes = dt.combine_coded(dict_codes)
 df_codes_weighted = dt.weight_coded(df_codes, 'topic') # 'category' for highest level of coding
 
@@ -247,6 +247,7 @@ plt.legend()
 plt.savefig('SentenceDivergence.png')
 plt.show()
 
+# # Function below nor compatible with using a set number of sub-centroids
 # # Plot showing how J-S divergence changes with number of sentences per centroid.
 # number_of_articles_arr = np.arange(1, 7)
 # scaling = "exponential"
