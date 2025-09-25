@@ -223,15 +223,15 @@ metric = "cosine" # Makes the most sense in a higher dimensional space
 
 # Calculate the embedding scores
 # Name arbitary, but 3 for now to represent '3' categories
-embedding_scores_3 = embedding_score(embedding_matrix, alpha, centroid_indices,
+embedding_scores_comparison = embedding_score(embedding_matrix, alpha, centroid_indices,
                                       metric, scaling, rounding=False, k_per_cat=n_reps)
 
 # Add the embedding scores to the DataFrame in the same order as the coded scores
 for i, category in enumerate(coded_category_names):
-    df_embeddings[str(category)] = embedding_scores_3[:,i]
+    df_embeddings[str(category)] = embedding_scores_comparison[:,i]
 
 # Array to store the JS divergence
-JS_divergence_array = js_divergence(embedding_scores_3, coded_scores)
+JS_divergence_array = js_divergence(embedding_scores_comparison, coded_scores)
 
 # Plotting the distribution of the JS divergence
 plt.hist(JS_divergence_array, bins=50)
@@ -291,7 +291,7 @@ plt.show()
 # 2 Plots to represent the scores given in the 1st, 2nd, and 3rd highest categories
 # for the memos.
 # Choosing which scores we want to plot, and also given them a title
-scores_title = {"Coded": coded_scores, "Embedding scores": embedding_scores_3}
+scores_title = {"Coded": coded_scores, "Embedding scores": embedding_scores_comparison}
 
 # Initialize the figure
 fig, axs = plt.subplots(len(scores_title), 1, figsize=(20,20), sharex=True, sharey=False)
@@ -341,9 +341,9 @@ s1 = np.max(coded_scores, axis=1)
 s2 = np.partition(coded_scores, -2, axis=1)[:, -2]
 s3 = np.partition(coded_scores, -3, axis=1)[:, -3]
 
-p1 = np.max(embedding_scores_3, axis=1)
-p2 = np.partition(embedding_scores_3, -2, axis=1)[:, -2]
-p3 = np.partition(embedding_scores_3, -3, axis=1)[:, -3]
+p1 = np.max(embedding_scores_comparison, axis=1)
+p2 = np.partition(embedding_scores_comparison, -2, axis=1)[:, -2]
+p3 = np.partition(embedding_scores_comparison, -3, axis=1)[:, -3]
 
 scores = np.concatenate([s1, s2, s3, p1, p2, p3])
 type_ = np.repeat(["Coded", "Embedding"], len(s1)*3)
@@ -384,7 +384,7 @@ sns.reset_defaults()
 for i, (name, color) in enumerate(category_NameColor_dict.items()):
     # Get the embedding scores and coded weights for category i
     x = coded_scores[:, i]
-    y = embedding_scores_3[:, i]
+    y = embedding_scores_comparison[:, i]
 
     # Here you can change to either pearsonr, spearmanr or kendalltau
     r, p = kendalltau(x, y)
@@ -409,7 +409,7 @@ heatmap_indices = np.abs(JS_divergence_array - np.mean(JS_divergence_array)).arg
 
 # Filling in the scores_list and title_list, for the plot_heatmap function
 for i, index in enumerate(heatmap_indices):
-    scores_list.append([coded_scores[index, :], embedding_scores_3[index, :]])
+    scores_list.append([coded_scores[index, :], embedding_scores_comparison[index, :]])
     title = f'{df_codes_weighted["File"][index]} ({df_codes_weighted["Lines"][index]}) \n {df_codes_weighted["Sentences"][index][:120]}'
     if len(df_codes_weighted["Sentences"][index]) > 120:
         title = title + '...'
@@ -431,7 +431,7 @@ title_list = []
 
 # Filling in the scores_list and title_list, for the plot_heatmap function
 for i, index in enumerate(heatmap_indices):
-    scores_list.append([coded_scores[index, :], embedding_scores_3[index, :]])
+    scores_list.append([coded_scores[index, :], embedding_scores_comparison[index, :]])
     title = f'{df_codes_weighted["File"][index]} ({df_codes_weighted["Lines"][index]}) \n {df_codes_weighted["Sentences"][index][:120]}'
     if len(df_codes_weighted["Sentences"][index]) > 120:
         title = title + '...'
@@ -453,7 +453,7 @@ heatmap_indices = np.abs(JS_divergence_array - np.median(JS_divergence_array)).a
 
 # Filling in the scores_list and title_list, for the plot_heatmap function
 for i, index in enumerate(heatmap_indices):
-    scores_list.append([coded_scores[index, :], embedding_scores_3[index, :]])
+    scores_list.append([coded_scores[index, :], embedding_scores_comparison[index, :]])
     title = f'{df_codes_weighted["File"][index]} ({df_codes_weighted["Lines"][index]}) \n {df_codes_weighted["Sentences"][index][:120]}'
     if len(df_codes_weighted["Sentences"][index]) > 120:
         title = title + '...'
