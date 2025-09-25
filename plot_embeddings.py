@@ -2,6 +2,12 @@
 2D UMAP plotting of centroid representative sentences and subcentroids.
 """
 
+# Hide Kmeans memory leak warnings
+import warnings
+warnings.filterwarnings("ignore",
+                        category=UserWarning,
+                        module=r"sklearn\.cluster\._kmeans")
+
 import numpy as np
 import pickle as pkl
 import matplotlib.pyplot as plt
