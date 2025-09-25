@@ -2,68 +2,117 @@
 Functions used in the analysis code.
 """
 
+# Hide Kmeans memory leak warnings
+import warnings
+warnings.filterwarnings("ignore",
+                        category=UserWarning,
+                        module=r"sklearn\.cluster\._kmeans")
+
 # Imports
 import numpy as np
 import pandas as pd
-import scipy as sc
 import string
 import seaborn as sns
 import matplotlib.patches as mpatches
-from sklearn.cluster import Birch
+from scipy.spatial.distance import cdist
+from sklearn.cluster import KMeans
 
 # Main function for calcuating embeddings scores from already coded data (manual or random).
-# Scales down number of representative sentences to keep processing time faster.
-def embedding_score(embedding_matrix, alpha, centroid_indices, metric, scaling, rounding=False, assignment_matrix=None):
+# Creates subcentroids for more accurate scoring.
+def embedding_score(
+    embedding_matrix: np.ndarray,
+    alpha: float,
+    centroid_indices: list[list[int]],
+    metric: str,
+    scaling: str,
+    rounding: bool = False,
+    assignment_matrix: np.ndarray | None = None,
+    k_per_cat: list[int | None] | None = None,  # per-category subcentroid counts (None ⇒ use all reps)
+    random_state: int = 42,
+) -> np.ndarray:
     """
-    Calculates the scores for a given embedding matrix (n, d),
-    subclustering using Birch, then per-rep distance->scale->mean.
+    Score each row of `embedding_matrix` (or `assignment_matrix` if provided) against
+    per-category subcentroids computed with KMeans (cosine-aware when metric='cosine').
+
+    - metric: 'cosine' | 'euclidean' | 'cityblock'
+    - scaling:
+        * 'exponential'  => w = exp(-alpha * d)
+        * 'power'        => w = d ** (-alpha), with safe floor on d
+    - k_per_cat: list of ints/None, same length as centroid_indices.
+                 If None: keep all reps (dedup, order-preserving).
+                 If 1: mean center. If >1: exact KMeans k.
+    - Returns: (n_samples, n_categories) row-normalized scores.
     """
-    # max_reps = 15
+    assert scaling in ("exponential", "power")
+    assert metric in ("cosine", "euclidean", "cityblock")
 
-    # Validate inputs
-    assert scaling in ["exponential", "power"]
-    assert metric in ["cosine", "euclidean", "cityblock"]
+    def _l2norm_rows(X: np.ndarray, eps: float = 1e-12) -> np.ndarray:
+        n = np.linalg.norm(X, axis=1, keepdims=True)
+        return X / np.maximum(n, eps)
 
-    # Normalize base embeddings
-    embedding_matrix /= np.linalg.norm(embedding_matrix, axis=1)[:, None]
+    def _unique_rows_preserve_order(a: np.ndarray) -> np.ndarray:
+        if a.size == 0:
+            return a
+        a_c = np.ascontiguousarray(a)
+        view = a_c.view([('', a_c.dtype)] * a_c.shape[1])
+        _, idx = np.unique(view, return_index=True)
+        return a[idx]
 
-    # Choose matrix to score and normalize if assignment_matrix provided
-    if assignment_matrix is None:
-        score_matrix = embedding_matrix
-    else:
-        score_matrix = assignment_matrix / np.linalg.norm(assignment_matrix, axis=1)[:, None]
+    def _subcentroids_kmeans(reps: np.ndarray, k: int | None) -> np.ndarray:
+        if reps.size == 0:
+            return reps
+        if k is None:
+            return _unique_rows_preserve_order(reps)
+        n, _ = reps.shape
+        if n < k:
+            return _unique_rows_preserve_order(reps)
+        if k == 1:
+            return reps.mean(axis=0, keepdims=True).astype(reps.dtype, copy=False)
+        km = KMeans(n_clusters=k, random_state=random_state, n_init=10, algorithm="lloyd")
+        km.fit(reps)
+        return km.cluster_centers_.astype(reps.dtype, copy=False)
 
-    # Prepare output
+    # Choose which matrix to score; keep a separate base matrix for subcentroiding
+    base_matrix = np.asarray(embedding_matrix, dtype=np.float64)
+    score_matrix = base_matrix if assignment_matrix is None else np.asarray(assignment_matrix, dtype=np.float64)
+
+    # Cosine geometry ⇒ normalize both; for Euclidean/Cityblock leave unnormalized
+    if metric == "cosine":
+        base_matrix  = _l2norm_rows(base_matrix)
+        score_matrix = _l2norm_rows(score_matrix)
+
     n_samples = score_matrix.shape[0]
     n_cats = len(centroid_indices)
-    score = np.zeros((n_samples, n_cats))
+    if k_per_cat is None:
+        k_per_cat = [None] * n_cats
 
-    # Subcluster using Birch
+    score = np.zeros((n_samples, n_cats), dtype=np.float64)
+
     for i, idxs in enumerate(centroid_indices):
-        reps = embedding_matrix[idxs]
-        birch = Birch(n_clusters=None)
-        birch.fit(reps)
-        reps = birch.subcluster_centers_
-        reps /= np.linalg.norm(reps, axis=1)[:, None]
+        reps = base_matrix[idxs]
+        centers = _subcentroids_kmeans(reps, k=k_per_cat[i])
 
-        # Compute distances and weights
-        distances = sc.spatial.distance.cdist(score_matrix, reps, metric=metric)
+        if centers.size == 0:
+            continue
+
+        distances = cdist(score_matrix, centers, metric=metric)
+
         if scaling == "exponential":
             weights = np.exp(-alpha * distances)
-        else:
-            distances = np.maximum(distances, 1e-8)
-            weights = distances ** -alpha
+        else:  # 'power'
+            distances = np.maximum(distances, 1e-12)
+            weights = distances ** (-alpha)
 
-        # Average weights across reps
         score[:, i] = weights.mean(axis=1)
 
-    # Normalize across categories
-    score /= score.sum(axis=1)[:, None]
+    # Row-normalize safely
+    row_sums = np.maximum(score.sum(axis=1, keepdims=True), 1e-12)
+    score = score / row_sums
 
-    # Optional threshold & renormalize
     if rounding:
-        score[score <= 0.01] = 0
-        score /= score.sum(axis=1)[:, None]
+        score = np.where(score <= 0.01, 0.0, score)
+        row_sums = np.maximum(score.sum(axis=1, keepdims=True), 1e-12)
+        score = score / row_sums
 
     return score
 
