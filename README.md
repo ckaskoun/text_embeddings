@@ -1,4 +1,4 @@
-## Text Embeddings
+## **Text Embeddings**
 
 Code based upon the Odden et al. paper and the G.E.V.I.R repository, using sentence embeddings to code student
 writing. Everything is in one notebook, **[`text_embeddings_FA26.ipynb`](text_embeddings_FA26.ipynb)**, which asks:
@@ -8,14 +8,14 @@ writing. Everything is in one notebook, **[`text_embeddings_FA26.ipynb`](text_em
 - What is the ideal amount of sentences to maximize agreement metrics (mainly Cohen's κ)?
 - What, if any, are the effects of fine tuning the embeddings model on the exemplars? (work in progress)
 
-The notebook opens with a quick start, a table of contents, and a glossary. **Code is a work in progress.**
+**Code is a work in progress.**
 
 ### Contents
 
 ```
 text_embeddings_FA26.ipynb   the notebook
 raw_data/                    Sources data (open source with the Mjaaland et al. paper)
-saved_embeddings/            Qwen3-Embedding-8B vectors for the Sources data, so no GPU is needed
+saved_embeddings/            Saved Qwen3-Embedding-8B vectors for the Sources data
 legacy/                      the earlier (2025) script version, kept for reference
 ```
 
@@ -26,6 +26,5 @@ cell to the folder containing these files, and run all cells. The first cell ins
 
 ### Data privacy
 
-The PEPPER dataset is **not anonymized** and is never included here; run it only on a local runtime with the data
-on your own computer. `.gitignore` allows only the Sources files above into `raw_data/` and `saved_embeddings/`.
-Clear notebook outputs before committing (*Edit > Clear all outputs*), since outputs can contain sentences.
+The PEPPER dataset is **not anonymized** and is not included here; run it only on a local runtime with the data
+on your own computer.
