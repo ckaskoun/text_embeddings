@@ -1,0 +1,21 @@
+# Research data: never commit (student writing; PEPPER is not anonymized)
+raw_data/
+saved_embeddings/
+*.xlsx
+*.xls
+*.csv
+*.pkl
+*.pickle
+
+# Notebook and Python clutter
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Personal Claude Code settings (the shared ones are in .claude/settings.json)
+.claude/settings.local.json
+
+# OS files
+.DS_Store

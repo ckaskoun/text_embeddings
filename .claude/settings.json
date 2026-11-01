@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./raw_data/**)",
+      "Read(./saved_embeddings/**)",
+      "Read(**/*.xlsx)",
+      "Read(**/*.xls)",
+      "Read(**/*.pkl)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/data_guard.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking for research-data access"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+# Run `pre-commit install` once; these checks then run on every commit.
+repos:
+  # Remove notebook outputs and execution metadata (they can contain student text and account details).
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      - id: nbstripout
+        args: ['--keep-id', '--extra-keys', 'metadata.colab.provenance cell.metadata.executionInfo cell.metadata.outputId']
+
+  # Keep text_embeddings_FA26.py in sync with the notebook.
+  - repo: https://github.com/mwouts/jupytext
+    rev: v1.19.6
+    hooks:
+      - id: jupytext
+        args: [--sync]
+        files: ^text_embeddings_FA26\.(ipynb|py)$
+
+  # Catch syntax errors and undefined/unused names (rules set in ruff.toml).
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+    hooks:
+      - id: ruff-check
+        files: ^(text_embeddings_FA26\.ipynb|tests/.*\.py|\.claude/hooks/.*\.py)$
