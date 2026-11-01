@@ -1,5 +1,5 @@
 # Data folders: only the public Sources files are committed
-# PEPPER data (coding_master_alt_final.xlsx, exemplar_storage.xlsx, *_pepper*.pkl) is not anonymized.
+# PEPPER data (coding_master_alt_final.xlsx, exemplar_storage.xlsx, *_pepper*.pkl) is not anonymized
 raw_data/*
 !raw_data/sources_v2.xlsx
 !raw_data/centroids_expanded.xlsx
