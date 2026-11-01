@@ -1,0 +1,2 @@
+# Keep a plain-Python copy of every notebook (percent format) for readable diffs and code review.
+formats = "ipynb,py:percent"
