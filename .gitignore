@@ -1,19 +1,14 @@
-# Research data: never commit (student writing; PEPPER is not anonymized)
-raw_data/
-saved_embeddings/
-*.xlsx
-*.xls
-*.csv
-*.pkl
-*.pickle
+# Data folders: only the public Sources files may be committed.
+# PEPPER data (coding_master_alt_final.xlsx, exemplar_storage.xlsx, *_pepper*.pkl) is not anonymized.
+raw_data/*
+!raw_data/sources_v2.xlsx
+!raw_data/centroids_expanded.xlsx
+!raw_data/human_central-diverse.xlsx
 
-# Notebook and Python clutter
+saved_embeddings/*
+!saved_embeddings/Qwen_Qwen3-Embedding-8B_sources_v2_no_prompt.pkl
+
+# Notebook and system clutter
 .ipynb_checkpoints/
 __pycache__/
-*.pyc
-.venv/
-venv/
-
-
-# OS files
 .DS_Store

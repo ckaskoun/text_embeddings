@@ -1,6 +1,0 @@
-# Lenient on purpose: catch real errors (syntax, undefined or unused names), not style.
-line-length = 120
-extend-exclude = ["legacy"]
-
-[lint]
-select = ["E9", "F"]
